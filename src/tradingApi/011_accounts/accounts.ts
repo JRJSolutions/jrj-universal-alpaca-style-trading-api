@@ -13,16 +13,8 @@ export type AccountStatus = 'ACTIVE' | 'UNKNOWN' | string;
 
 export interface BaseAccountResult {
     brokerAccountId?: string;
-    id: string | null;
-    account_number: string | null;
-    account_name: string | null;
-    status: AccountStatus | null;
-    currency: string | null;
-    // Alpaca gives ISO string; MT5 may be undefined. Keep wide enough for both.
-    created_at: string | null | undefined;
-    platform: Platform | null;
-    framework: Framework | null;
-    backEndRes?: any
+    backEndRes?: any,
+    execution?: any
 }
 
 // ---- Alpaca specific
@@ -74,9 +66,11 @@ export interface AlpacaAccount {
 }
 
 export interface AlpacaAccountResult extends BaseAccountResult {
-    platform: 'alpaca';
-    framework: 'alpaca';
-    platformSpecificResult: AlpacaAccount | null;
+    platform?: 'alpaca';
+    framework?: 'alpaca';
+    platformSpecificResult?: AlpacaAccount | null;
+    unified?: UnifiedAccountAlpaca;
+    backEndRes?: UnifiedAccountAlpaca;
 }
 
 // ---- MT5 (FOREX.comCA) specific
@@ -117,6 +111,7 @@ export interface Mt5Account {
 export interface Mt5AccountResult extends BaseAccountResult {
     platform: 'FOREX.comCA';
     framework: 'mt5';
+    unified?: any;
     platformSpecificResult: Mt5Account | null;
 }
 
@@ -130,41 +125,43 @@ export const isAlpacaResult = (r: AccountResult): r is AlpacaAccountResult =>
 export const isMt5Result = (r: AccountResult): r is Mt5AccountResult =>
     r.platform === 'FOREX.comCA';
 
+import { alpaca_get_account_unifier, type UnifiedAccountAlpaca } from '../../../unifiers/alpaca_get_account_unifier';
 // ---- Function signature with types
 import { alpaca_get__account } from '../../brokers/alpaca/accounts';
 import { mt5_get__account } from '../../brokers/mt5/accounts';
+import { diffMsTs } from '../../helpers/diffMsTs';
 
 
 export async function get__account(
     { clientConfig }: { clientConfig: ClientConfig }
 ): Promise<AccountResult> {
     // common fields you want to reuse; NOT typed as AccountResult
-    const base = {
-        brokerAccountId: clientConfig?.brokerAccountId,
-        id: null as string | null,
-        account_number: null as string | null,
-        account_name: null as string | null,
-        status: null as AccountStatus | null,
-        currency: null as string | null,
-        created_at: null as string | null | undefined,
-    };
+
 
     if (clientConfig.platform === 'alpaca') {
+        const start = new Date()
         const res = await alpaca_get__account({ clientConfig });
-        const alpacaRes: AlpacaAccount = res?.data
+        const alpacaRes: AlpacaAccount = res?.data;
+        delete res.data
+
+        const unified = alpaca_get_account_unifier(alpacaRes)
+
+
+        const finish = new Date()
 
         const r: AlpacaAccountResult = {
-            ...base,
-            id: alpacaRes.id,
-            account_number: alpacaRes.account_number,
-            account_name: alpacaRes.account_number,
-            status: alpacaRes.status,
-            currency: alpacaRes.currency,
-            created_at: alpacaRes.created_at,
-            platform: 'alpaca',              // <- discriminant satisfied
-            framework: 'alpaca',
+            brokerAccountId: clientConfig?.brokerAccountId,
+            unified: unified,
+            // ...unified,
             platformSpecificResult: alpacaRes,
-            backEndRes: res
+            backEndRes: res,
+            execution: {
+                start: start.toISOString(),
+                finish: finish.toISOString(),
+                duration: diffMsTs(start, finish)
+            },
+            platform: 'alpaca',
+            framework: 'alpaca'
         };
         return r;
     }
@@ -172,19 +169,21 @@ export async function get__account(
     if (clientConfig.platform === 'FOREX.comCA') {
         const forex: Mt5Account = await mt5_get__account({ clientConfig });
 
-        const r: Mt5AccountResult = {
-            ...base,
-            id: `${clientConfig.platform}__${forex.login}`,
-            account_number: String(forex.login),
-            account_name: forex.name,
-            status: forex.trade_allowed ? 'ACTIVE' : 'UNKNOWN',
-            currency: forex.currency,
-            created_at: forex.created_at,    // may be undefined per your data
-            platform: 'FOREX.comCA',         // <- discriminant satisfied
-            framework: 'mt5',
-            platformSpecificResult: forex,
-        };
-        return r;
+        console.log(JSON.stringify(forex));
+
+        // const r: Mt5AccountResult = {
+        //     ...base,
+        //     id: `${clientConfig.platform}__${forex.login}`,
+        //     account_number: String(forex.login),
+        //     account_name: forex.name,
+        //     status: forex.trade_allowed ? 'ACTIVE' : 'UNKNOWN',
+        //     currency: forex.currency,
+        //     created_at: forex.created_at,    // may be undefined per your data
+        //     platform: 'FOREX.comCA',         // <- discriminant satisfied
+        //     framework: 'mt5',
+        //     platformSpecificResult: forex,
+        // };
+        // return r;
     }
 
     // If you might add more platforms later, fail fast for unknown ones:

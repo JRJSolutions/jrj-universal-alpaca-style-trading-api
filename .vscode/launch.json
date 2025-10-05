@@ -24,6 +24,19 @@
       //   // Optional path mapping for remote debugging
       "localRoot": "${workspaceFolder}/src",
       "remoteRoot": "/src"
+    },
+    {
+      "type": "python",
+      "name": "5698-pythonn test",
+      "request": "attach",
+      "port": 5698,
+      "host": "127.0.0.1",
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}",
+          "remoteRoot": "."
+        }
+      ]
     }
   ]
 }

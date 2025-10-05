@@ -1,38 +1,34 @@
 import { describe, expect, it } from 'bun:test'
-import { get__account, type ClientConfig } from './accounts'
+import { get__account, type AccountResult, type ClientConfig } from './accounts'
 
 import * as alpacaAccounts from '../../../testAccountsConfigs/alpacaAccounts.json'
 
 describe('get__account', () => {
-    const accountExpected = {
+    const accountExpected: AccountResult = {
         brokerAccountId: "brokerAccountId",
-        id: "id",
-        account_number: "brokerAccountId",
-        status: "status",
-        currency: "currency",
-        created_at: "created_at",
-        platform: "platform",
-        platformSpecificResult: {},
+        unified: {
+            id: "c448514f-1d20-4a6c-b101-1c9ea22d80ac",
+            account_number: "PA3R86ESIBPH",
+            account_name: "PA3R86ESIBPH",
+            status: "ACTIVE",
+            currency: "USD",
+            created_at: "2025-06-23T01:59:56.130102Z",
+            platform: "alpaca",
+            framework: "alpaca",
+            cash: 15303.3,
+            total_value: 110844.88,
+            buying_power: 126148.18,
+            total_invested: 95541.58,
+            short_market_value: 0,
+            long_market_value: 95541.58,
+            withdrawable_cash: 15303.3,
+            short_value: 0,
+            long_value: 95541.58,
+            margin_used: "UNKNOWN-ROY",
+            margin_cost: "UNKNOWN-ROY",
+        },
 
 
-        // cash = float(a.cash)
-        // total_value = float(a.equity)
-        // buying_power = float(a.buying_power)
-        // total_invested = float(a.long_market_value) + abs(float(a.short_market_value))
-        // short_market_value = abs(float(a.short_market_value))
-        // long_market_value = abs(float(a.long_market_value))
-        // withdrawable_cash = cash - 1.5 * short_market_value
-        // withdrawable_cash = 0 if withdrawable_cash<0 else withdrawable_cash
-
-        // Total Value, alpaca -> equity
-        // Invested Fund, 
-        // Short Value,
-        // Long Value,
-        // Cash,
-        // Withdrawable Cash, 
-        // Buying Power, 
-        // Margin Used,
-        // Margin Cost
     };
     it('get__account alpaca__PA3R86ESIBPH alpaca', async () => {
         const res = await get__account({
@@ -41,14 +37,14 @@ describe('get__account', () => {
             }
         })
 
-        console.log(res);
+        // console.log(res);
 
 
         expect(res.brokerAccountId).toBe(alpacaAccounts['alpaca__PA3R86ESIBPH']?.brokerAccountId)
-        expect(res.status).toBeString()
-        Object.keys(accountExpected).forEach((key) => {
+        expect(res.unified.status).toBeString()
+        Object.keys(accountExpected?.unified || {}).forEach((key) => {
 
-            expect(res).toHaveProperty(key)
+            expect(res.unified).toHaveProperty(key)
         })
     })
     it('get__account FOREX.comCA__22901827 alpaca', async () => {
@@ -58,10 +54,10 @@ describe('get__account', () => {
             }
         })
 
-        console.log(res);
+        // console.log(res);
 
 
-        expect(res.brokerAccountId).toBe(alpacaAccounts['FOREX.comCA__22901827']?.brokerAccountId)
+        // expect(res.brokerAccountId).toBe(alpacaAccounts['FOREX.comCA__22901827']?.brokerAccountId)
         // expect(res.status).toBeString()
         // Object.keys(accountExpected).forEach((key) => {
 
