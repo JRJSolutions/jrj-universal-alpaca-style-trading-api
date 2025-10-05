@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "bun",
+      "request": "attach",
+      "name": "Attach Api",
+
+      // The URL of the WebSocket inspector to attach to.
+      // This value can be retrieved by using `bun --inspect`.
+      "url": "ws://127.0.0.1:7105/debugger",
+      //   // Optional path mapping for remote debugging
+      "localRoot": "${workspaceFolder}/src",
+      "remoteRoot": "/src"
+    },
+    {
+      "type": "bun",
+      "request": "attach",
+      "name": "Attach test",
+
+      // The URL of the WebSocket inspector to attach to.
+      // This value can be retrieved by using `bun --inspect`.
+      "url": "ws://127.0.0.1:7106/debugger",
+      //   // Optional path mapping for remote debugging
+      "localRoot": "${workspaceFolder}/src",
+      "remoteRoot": "/src"
+    }
+  ]
+}
