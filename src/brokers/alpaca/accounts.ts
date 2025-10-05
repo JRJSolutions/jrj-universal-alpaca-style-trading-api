@@ -1,6 +1,6 @@
 import { alpacaApiCall } from "./alpacaApiUtils";
 
-export const alpaca_get__account = async ({ clientConfig }) => {
+export const alpaca_get__account: any = async ({ clientConfig }) => {
 
 
     const result = await alpacaApiCall({
@@ -9,11 +9,16 @@ export const alpaca_get__account = async ({ clientConfig }) => {
         method: 'get',
     })
 
-
-    return {
-
-        ...result,
-        referenceDoc: "https://docs.alpaca.markets/reference/getaccount-1"
+    if (result?.ok) {
+        return {
+            ...result,
+            data: {
+                ...result?.data,
+                referenceDoc: "https://docs.alpaca.markets/reference/getaccount-1"
+            }
+        }
     }
+
+    return result
 
 }
